@@ -7,15 +7,26 @@ import { useEffect, useState } from 'react'
 import AppIcon from '@/app/components/base/app-icon'
 import { useDatasetsDetailStore } from '../../datasets-detail-store/store'
 
+type DatasetWithOptionalIconInfo = Omit<DataSet, 'icon_info'> & {
+  icon_info?: DataSet['icon_info']
+}
+
+const defaultDatasetIconInfo: DataSet['icon_info'] = {
+  icon: '📙',
+  icon_type: 'emoji',
+  icon_background: '#FFF4ED',
+  icon_url: '',
+}
+
 const Node: FC<NodeProps<KnowledgeRetrievalNodeType>> = ({
   data,
 }) => {
-  const [selectedDatasets, setSelectedDatasets] = useState<DataSet[]>([])
+  const [selectedDatasets, setSelectedDatasets] = useState<DatasetWithOptionalIconInfo[]>([])
   const datasetsDetail = useDatasetsDetailStore(s => s.datasetsDetail)
 
   useEffect(() => {
     if (data.dataset_ids?.length > 0) {
-      const dataSetsWithDetail = data.dataset_ids.reduce<DataSet[]>((acc, id) => {
+      const dataSetsWithDetail = data.dataset_ids.reduce<DatasetWithOptionalIconInfo[]>((acc, id) => {
         if (datasetsDetail[id])
           acc.push(datasetsDetail[id])
         return acc
@@ -33,21 +44,25 @@ const Node: FC<NodeProps<KnowledgeRetrievalNodeType>> = ({
   return (
     <div className="mb-1 px-3 py-1">
       <div className="space-y-0.5">
-        {selectedDatasets.map(({ id, name, icon_info }) => (
-          <div key={id} className="flex h-[26px] items-center gap-x-1 rounded-md bg-workflow-block-parma-bg px-1">
-            <AppIcon
-              size="xs"
-              iconType={icon_info.icon_type}
-              icon={icon_info.icon}
-              background={icon_info.icon_type === 'image' ? undefined : icon_info.icon_background}
-              imageUrl={icon_info.icon_type === 'image' ? icon_info.icon_url : undefined}
-              className="shrink-0"
-            />
-            <div className="system-xs-regular w-0 grow truncate text-text-secondary">
-              {name}
+        {selectedDatasets.map(({ id, name, icon_info }) => {
+          const iconInfo = icon_info || defaultDatasetIconInfo
+
+          return (
+            <div key={id} className="flex h-[26px] items-center gap-x-1 rounded-md bg-workflow-block-parma-bg px-1">
+              <AppIcon
+                size="xs"
+                iconType={iconInfo.icon_type}
+                icon={iconInfo.icon}
+                background={iconInfo.icon_type === 'image' ? undefined : iconInfo.icon_background}
+                imageUrl={iconInfo.icon_type === 'image' ? iconInfo.icon_url : undefined}
+                className="shrink-0"
+              />
+              <div className="system-xs-regular w-0 grow truncate text-text-secondary">
+                {name}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
